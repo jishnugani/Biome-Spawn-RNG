@@ -1,0 +1,19 @@
+﻿local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Lighting = game:GetService("Lighting")
+local RemoteEvent = ReplicatedStorage:WaitForChild("ChangeSkyEvent")
+
+local skiesFolder = workspace:WaitForChild("skies"):WaitForChild("Skies")
+
+RemoteEvent.OnClientEvent:Connect(function(skyName)
+	for _, obj in pairs(Lighting:GetChildren()) do
+		if obj:IsA("Sky") then
+			obj:Destroy()
+		end
+	end
+
+	local sky = skiesFolder:FindFirstChild(skyName)
+	if sky then
+		local newSky = sky:Clone()
+		newSky.Parent = Lighting
+	end
+end)

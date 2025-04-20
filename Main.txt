@@ -1,0 +1,51 @@
+﻿local function chooseRandomSpawn(tableOfSpawns)
+	local totalWeight = 0
+
+	for _, chance in pairs(tableOfSpawns) do
+		totalWeight += chance
+	end
+
+	local randomPick = math.random() * totalWeight
+	local cumulativeChance = 0
+
+	for location, chance in pairs(tableOfSpawns) do
+		cumulativeChance += chance
+		if randomPick <= cumulativeChance then
+			return location
+		end
+	end
+end
+
+local spawnLocationsFolder = game.Workspace:WaitForChild("SpawnLocations")
+
+local tableOfSpawns = {}
+
+for _, spawnLocation in pairs(spawnLocationsFolder:GetChildren()) do
+	spawnLocation.Enabled = false
+
+	local chanceOfSpawn = spawnLocation:WaitForChild("ChanceOfSpawn")
+
+	tableOfSpawns[spawnLocation] = chanceOfSpawn.Value
+end
+
+game.Players.PlayerAdded:Connect(function(plr)
+	local chosenLocation = chooseRandomSpawn(tableOfSpawns)
+
+	print("Chosen Location:", chosenLocation)
+	chosenLocation.Enabled = true
+
+	plr.CharacterAdded:Connect(function(character)
+		local humanoid = character:WaitForChild("Humanoid")
+
+		humanoid.Died:Connect(function()
+			for _, spawnLocation in pairs(spawnLocationsFolder:GetChildren()) do
+				spawnLocation.Enabled = false
+			end
+
+			local newChosenLocation = chooseRandomSpawn(tableOfSpawns)
+
+			print("New Chosen Location:", newChosenLocation)
+			newChosenLocation.Enabled = true
+		end)
+	end)
+end)
